@@ -1,0 +1,36 @@
+Pwrake demo : Montage Workflow Moniter
+
+  Montage website : http://montage.ipac.caltech.edu/
+
+1. Download Montage source
+
+ * visit http://montage.ipac.caltech.edu/docs/download.html
+ * download Montage_v3.3.tar.gz
+
+2. Compile Montage
+
+  $ tar xvzf Montage_v3.3.tar.gz
+  $ cd Montage_v3.3
+  $ make
+  $ cd ..
+
+3. Set command search PATH
+
+ * bash
+  $ export PATH=`pwd`/Montage_v3.3/bin:$PATH
+
+ * csh
+  % setenv PATH `pwd`/Montage_v3.3/bin:$PATH
+
+4. Compile & Install Ruby/METIS
+
+ * see http://github.com/masa16/ruby-metis
+
+5. Edit nodefiles
+
+  $ cd nodes
+  $ vi ...
+
+6. Run servelet
+
+  $ ruby servlet.rb

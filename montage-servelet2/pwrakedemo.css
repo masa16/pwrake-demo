@@ -1,0 +1,36 @@
+.input   { fill: #f0f8ff; }
+.yet     { fill: #cccccc; }
+.doing   { fill: #ff0000; }
+.done    { fill: #44ffff; }
+
+.s00 { fill: #eeeeee; }
+
+.s01 { fill: #ff0000; }
+.s02 { fill: #00ee00; }
+.s03 { fill: #0000ff; }
+.s04 { fill: #ffdd00; }
+.s05 { fill: #ee00ee; }
+.s06 { fill: #00ddff; }
+.s07 { fill: #ff8800; }
+.s08 { fill: #00dd88; }
+
+.e00 { fill: #dddddd; }
+
+.e01 { fill: #ffaaaa; }
+.e02 { fill: #aaffaa; }
+.e03 { fill: #aaaaff; }
+.e04 { fill: #ffffbb; }
+.e05 { fill: #ffbbff; }
+.e06 { fill: #bbeeff; }
+.e07 { fill: #ffcc88; }
+.e08 { fill: #99ffdd; }
+
+.cluster1 { stroke: #ff0000; }
+.cluster2 { stroke: #00ee00; }
+.cluster3 { stroke: #0000ff; }
+.cluster4 { stroke: #ffdd00; }
+.cluster5 { stroke: #ee00ee; }
+.cluster6 { stroke: #00ddff; }
+.cluster7 { stroke: #ff8800; }
+.cluster8 { stroke: #00dd88; }
+

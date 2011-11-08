@@ -1,0 +1,39 @@
+load "Rakefile.common"
+
+# Make directories
+mkdir_p ["p","d","c","s","t"]
+
+file RIMAGES_TBL do
+  sh"(cd #{INPUT_DIR}; mImgtbl . /tmp/rimages_all.tbl)"
+  sh"(cd #{INPUT_DIR}; mSubset /tmp/rimages_all.tbl region.hdr /tmp/rimages.tbl)"
+  sh "mv /tmp/rimages.tbl #{INPUT_DIR}/"
+end
+
+file "diffs.tbl" => RIMAGES_TBL do
+  cmd = "mOverlaps #{RIMAGES_TBL} diffs.tbl"
+  sh cmd
+end
+
+TILE_HDRS = []
+TILE_TBL_TEST = []
+
+NY.times do |iy|
+  NX.times do |ix|
+    TILE_HDRS << tile_hdr = "t/tile_#{ix}_#{iy}.hdr"
+    desc "mTileHdr"
+    file tile_hdr => [REGION_HDR] do |t|
+      opt="#{NX} #{NY} #{ix} #{iy} 10 10"
+      sh "mTileHdr #{t.prerequisites[0]} #{t.name} #{opt}"
+    end
+
+    TILE_TBL_TEST << tile_tbl_test = tile_hdr.ext('tbl_test')
+    desc "mCoverageCheck"
+    file tile_tbl_test => [tile_hdr,RIMAGES_TBL] do |t|
+      sh "mCoverageCheck #{RIMAGES_TBL} #{t.name} -header #{t.prerequisites[0]}"
+    end
+  end
+end
+
+task "tile.tbls" => TILE_TBL_TEST
+
+task :default => ["diffs.tbl","tile.tbls"]
