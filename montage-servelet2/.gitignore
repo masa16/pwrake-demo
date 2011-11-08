@@ -1,2 +1,10 @@
+*~
 .#*
 *.fits
+*.jpg
+cimages.tbl
+corrections.tbl
+diffs.tbl
+fits.tbl
+simages.tbl
+t
