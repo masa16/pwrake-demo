@@ -1,0 +1,52 @@
+load "Rakefile"
+
+require "pwrake/graph"
+
+file "graph1.svg" do |tsk|
+  g = Pwrake::Graphviz.new
+  g.trace(:default)
+  dot = "graph1.dot"
+  g.write(dot)
+
+  tmp = "graph1.tmp.dot"
+  sh "dot -T svg -Eweight=1 -Gstylesheet='pwrakedemo.css' -o #{tmp} #{dot}"
+
+  s = File.read(tmp)
+  s.gsub!(/<g ([^>]*\bclass="([^"]*)"[^>]*)><title>([^<]*)<\/title>(.*?)<\/g>/m) do |l|
+    a = $1
+    b = $2
+    t = $3
+    e = $4
+    m = ''
+    if b == "node"
+      a.sub!(/\bid="([^"]*)"/, %[id="#{t}"])
+      e.sub!(/<(polygon|ellipse)([^>]*) fill="none"([^>]*)>/, '<\1\2\3>')
+      e.sub!(/<text /, '<text fill="black" ')
+
+      if name = g.node_name[t]
+        task = Rake.application[name]
+        if task.prerequisites.empty?
+          c = "input"
+        elsif task.already_invoked
+          c = "done"
+        else
+          c = "yet"
+        end
+        e.sub!(/<(polygon|ellipse) /, "<\\1 class='#{c}' ")
+      end
+      m = 'onmouseover="nodeIn(evt);" onmouseout="nodeOut(evt);" '
+    elsif b == "cluster"
+      e.sub!(/<(polygon) /, "<\\1 class='#{t}' ")
+      e.sub!(/ stroke="([^"]*)"/, "")
+    end
+    "<g #{m}#{a}><title>#{t}</title>#{e}</g>"
+  end
+
+  File.open(tsk.name,"w") do |w|
+    w.write s
+    w.close
+  end
+
+end
+
+$graph = true

@@ -69,7 +69,6 @@ rimgs.each do |x|
   CORRECT_FITS << dst
   desc "mBackground"
   file dst => ["p/#{src}","corrections.tbl",RIMAGES_TBL] do |t|
-  #file dst => ["p/#{src}",RIMAGES_TBL] do |t|
     sh "(cd p; mBackground -t #{src} ../#{dst} ../#{RIMAGES_TBL} ../corrections.tbl)" do |ok,status|
       Montage.collect_imgtbl(t, C_IMGTBL) if ok
     end
@@ -103,7 +102,6 @@ NY.times do |iy|
     desc "mAdd"
     file tile_fits => [tile_tbl,tile_hdr]+imgs do |t|
       a = t.prerequisites[0..1].join(" ")
-      sh "sync"
       sh "mAdd -e -p c #{a} #{t.name} "
     end
 

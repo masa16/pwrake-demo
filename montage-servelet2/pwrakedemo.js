@@ -78,6 +78,16 @@ function progressProc(input)
 	changeEllipseAttr(res,'e'+gid);
 	changePolygonAttr(res,'e'+gid);
 
+      } else if (line.substring(0,5) == 'stat ') {
+        var text = line.substring(5);
+	var elem = parent.fr1.document.getElementById('statistics');
+	elem.textContent = text;
+
+      } else if (line.substring(0,5) == 'part ') {
+        var text = line.substring(5);
+	var elem = parent.fr1.document.getElementById('node_note');
+	elem.textContent = text;
+
       } else {
 	var res = line;
 	var img = null;
@@ -202,11 +212,26 @@ function graphSize() {
   var elm = doc.getElementById("workflowgraph");
   var svg = elm.getElementsByTagName("svg")[0];
 
-  var sel = document.testform.graphsize;
+  var ctl = parent.fr1.document;
+  var sel = ctl.testform.graphsize;
+  //var sel = document.testform.graphsize;
   var mag = parseFloat(sel.options[sel.selectedIndex].value);
   var wid = doc.defaultView.getComputedStyle(doc.documentElement, null).getPropertyValue('width');
   svg.style.width = (mag*0.01*(parseInt(wid)-30)).toString(10)+"px";
 }
+
+
+/*
+function graphSize100() {
+  var doc = parent.fr3.document;
+  var elm = doc.getElementById("workflowgraph");
+  var svg = elm.getElementsByTagName("svg")[0];
+
+  var mag = 100;
+  var wid = doc.defaultView.getComputedStyle(doc.documentElement, null).getPropertyValue('width');
+  svg.style.width = (mag*0.01*(parseInt(wid)-30)).toString(10)+"px";
+}
+`*/
 
 
 function startWorkflow() {

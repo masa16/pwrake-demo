@@ -41,6 +41,7 @@ thread = Thread.start do
 end
 
 WEBrick::HTTPServlet::FileHandler.add_handler("erb", WEBrick::HTTPServlet::ERBHandler)
+WEBrick::HTTPServlet::FileHandler.add_handler("xerb", WEBrick::HTTPServlet::ERBHandler)
 
 SERVER = HTTPServer.new({ :DocumentRoot => '.',
                           :Port => 13390 })
@@ -50,6 +51,8 @@ SERVER.config[:MimeTypes]["fits"] = "application/fits"
 SERVER.config[:MimeTypes]["fit"]  = "application/fits"
 SERVER.config[:MimeTypes]["hdr"]  = "text/plain"
 SERVER.config[:MimeTypes]["tbl"]  = "text/plain"
+SERVER.config[:MimeTypes]["xhtml"] = "application/xhtml+xml"
+SERVER.config[:MimeTypes]["xerb"]  = "application/xhtml+xml"
 
 class StartServlet < HTTPServlet::AbstractServlet
   def do_POST(req, res)
@@ -67,7 +70,7 @@ class StartServlet < HTTPServlet::AbstractServlet
         nodelist = req.body
         system("./pwrake -f Rakefile.prepare clobber")
         system("./pwrake -f Rakefile.prepare")
-        $wf_pid = spawn("./pwrake FS=gfarm NODES=nodes/#{nodelist}")
+        $wf_pid = spawn("./pwrake FS=gfarm NODES=nodes/#{nodelist} SOCKET=true")
         res.body = 'workflow started'
       end
     end

@@ -1,6 +1,6 @@
 module Pwrake
 
-  class Graphviz
+  class Graphviz4Demo
 
     def initialize
       @nodes = {}

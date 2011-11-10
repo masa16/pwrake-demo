@@ -1,7 +1,10 @@
 require 'socket'
 
-require './graph.rb'
+require './graph4demo.rb'
 require './graph_part.rb'
+require './count4demo.rb'
+
+if ENV['SOCKET']
 
 begin
   MUTEX = Mutex.new
@@ -9,6 +12,8 @@ begin
   END{SOCKET.close}
 rescue
 end
+
+COUNTER = Count4Demo.new
 
 Pwrake.manager.scheduler_class.module_eval do
 
@@ -21,6 +26,12 @@ Pwrake.manager.scheduler_class.module_eval do
         #puts "start #{hid} #{tag}"
         SOCKET.puts("start #{hid} #{tag}") if defined? SOCKET
       end
+    end
+
+    MUTEX.synchronize do
+      COUNTER.count(t)
+      SOCKET.puts(COUNTER.status) if defined? SOCKET
+      puts COUNTER.status
     end
   end
 
@@ -78,8 +89,7 @@ end # Pwrake.manager.scheduler_class
 TMPFILES=[]
 
 def show_graph
-  puts "show_graph!!!!!!!!!!!!!"
-  $g = Pwrake::Graphviz.new
+  $g = Pwrake::Graphviz4Demo.new
   $g.trace
   $g.write("/tmp/graph.dot")
   system 'dot -T svg -Eweight=1 -Gstylesheet="pwrakedemo.css" -o /tmp/graph0.svg /tmp/graph.dot'
@@ -114,34 +124,7 @@ def show_graph
     end
     "<g #{m}#{a}><title>#{t}</title>#{e}</g>"
   end
-#
-#  s.gsub!(/<g ([^>]*\bclass="([^"]*)"[^>]*)><title>([^<]*)<\/title>(.*?)<\/g>/m) do |l|
-#    a = $1
-#    b = $2
-#    t = $3
-#    e = $4
-#    a.sub!(/\bid="([^"]*)"/, %[id="#{t}"])
-#    e.sub!(/<(polygon|ellipse)([^>]*) fill="none"([^>]*)>/, '<\1\2\3>')
-#    e.sub!(/<text /, '<text fill="black" ')
-#
-#    if name = $g.node_name[t]
-#      task = Rake.application[name]
-#      if task.prerequisites.empty?
-#        c = "input"
-#      elsif task.already_invoked
-#        c = "done"
-#      else
-#        c = "yet"
-#      end
-#      e.sub!(/<(polygon|ellipse) /, "<\\1 class='#{c}' ")
-#      %[<g onmouseover="nodeIn(evt);" onmouseout="nodeOut(evt);" #{a}><title>#{t}</title>#{e}</g>]
-#    elsif /^cluster(\d+)/ =~ t
-#      c = $1
-#      e.sub!(/<polygon /, "<\\1 class='cluster#{c}' ")
-#      %[<g #{a}><title>#{t}</title>#{e}</g>]
-#    end
-#  end
-#
+
   File.open("/tmp/graph.svg","w") do |w|
     w.write s
     w.close
@@ -149,5 +132,10 @@ def show_graph
 
   MUTEX.synchronize do
     SOCKET.puts("reload") if defined? SOCKET
+  end
+end
+
+else
+  def show_graph
   end
 end

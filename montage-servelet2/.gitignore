@@ -2,6 +2,8 @@
 .#*
 *.fits
 *.jpg
+*.dot
+*.svg
 cimages.tbl
 corrections.tbl
 diffs.tbl

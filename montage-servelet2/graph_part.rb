@@ -202,6 +202,9 @@ module Pwrake
       t2 = Time.now
       Pwrake::Log.log "Time for Graph Partitioning: #{t2-t1} sec"
       #p @part
+      MUTEX.synchronize do
+        SOCKET.puts("part Time for Graph Partitioning: #{t2-t1} sec") if defined? SOCKET
+      end
     end
 
     def set_part
