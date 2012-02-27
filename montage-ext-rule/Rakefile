@@ -1,0 +1,133 @@
+load "Rakefile.common"
+#require './pwrakedemo.rb'
+
+### Default task
+#task :default => "shrunk.jpg"
+task :default => "mosaic.jpg"
+mkdir_p %w[p d c t s]
+
+### projection
+rimgs = Montage.read_image_tbl(RIMAGES_TBL)
+IMGS = rimgs.map{|x| File.basename(x["fname"])}
+P_IMGTBL = []
+
+desc "mProjectPP"
+rule %r|^p/.*\.fits$| => ["r/%f",REGION_HDR] do |t|
+  sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do |ok,status|
+    Montage.collect_imgtbl(t, P_IMGTBL) if ok
+  end
+end
+
+desc "put_imgtbl"
+file "pimages.tbl" => IMGS.map{|x| "p/"+x} do
+  Montage.put_imgtbl(P_IMGTBL, "p", "pimages.tbl")
+end
+
+### dif & fit
+FIT_TBL=[]
+DIFF_FITS=[]
+DIFF_HASH={}
+
+sh "mOverlaps #{RIMAGES_TBL} diffs.tbl"
+diffs = Montage.read_overlap_tbl("diffs.tbl")
+diffs.each do |c|
+  DIFF_FITS << d = "d/"+c[4]
+  DIFF_HASH[d] = ["p/"+c[2], "p/"+c[3]]
+end
+Montage.write_fittxt_tbl("fittxt.tbl", diffs)
+
+desc "mDiff"
+rule %r|^d/.*\.fits$| => proc{|x| DIFF_HASH[x]} do |t|
+  p1,p2 = t.prerequisites
+  /diff\.(\d+)\.(\d+)\./ =~ t.name
+  c = [$1.to_i, $2.to_i]
+  sh "mDiff #{p1} #{p2} #{t.name} #{REGION_HDR}" do |ok,status|
+    Montage.fitplane(c, t, FIT_TBL) if ok
+  end
+end
+
+### concatfit
+desc "write_fits_tbl"
+file "fits.tbl" => DIFF_FITS do |t|
+  Montage.write_fits_tbl(FIT_TBL, "fittxt.tbl", "fits.tbl")
+end
+
+### bg-model
+desc "mBgModel"
+file "corrections.tbl" => ["fits.tbl", "pimages.tbl"] do
+  sh "mBgModel pimages.tbl fits.tbl corrections.tbl"
+end
+
+### background correction
+C_IMGTBL=[]
+
+desc "mBackground"
+rule %r|^c/.*\.fits$| => ["p/%f",REGION_HDR,"corrections.tbl"] do |t|
+  src = File.basename(t.prerequisites[0])
+  sh "(cd p; mBackground -t #{src} ../#{t.name} ../pimages.tbl ../corrections.tbl)" do |ok,status|
+    Montage.collect_imgtbl(t, C_IMGTBL) if ok
+  end
+end
+
+desc "put_imgtbl"
+file "cimages.tbl" => IMGS.map{|x| "c/"+x} do |t|
+  Montage.put_imgtbl(C_IMGTBL, "c", "cimages.tbl")
+end
+
+### tile region
+desc "mCoverageCheck"
+rule %r|^t/tile_.*\.tbl$| => ["t/%n.hdr","cimages.tbl"] do |t|
+  sh "mCoverageCheck cimages.tbl #{t.name} -header #{t.prerequisites[0]}"
+end
+
+madd_deps = proc do |tile_fits|
+  tbl = tile_fits.ext('tbl')
+  hdr = tile_fits.ext('hdr')
+  img = Montage.read_image_tbl(tbl+"_test")
+  [tbl, hdr] + img.map{|x| "c/"+File.basename(x["fname"])}
+end
+
+desc "mAdd"
+rule %r|^t/tile_.*\.fits$| => madd_deps do |t|
+  a = t.prerequisites[0..1].join(" ")
+  sh "mAdd -e -p c #{a} #{t.name} "
+end
+
+S_IMGTBL = []
+
+desc "mShrink"
+rule %r|^s/tile_.*\.fits$| => "t/%n.fits" do |t|
+  sh "mShrink #{t.prerequisites[0]} #{t.name} #{SHRINK_FACTOR}"
+  Montage.collect_imgtbl(t, S_IMGTBL)
+end
+
+desc "put_imgtbl"
+file "simages.tbl" do
+  Montage.put_imgtbl(S_IMGTBL, "s", "simages.tbl")
+end
+
+NY.times do |j|
+  NX.times do |i|
+    file "simages.tbl" => "s/tile_#{i}_#{j}.fits"
+  end
+end
+
+desc "mAdd"
+file "shrunk.fits" => ["simages.tbl", SHRUNK_HDR] do |t|
+  sh "mAdd -n -e -p s #{t.prerequisites.join(' ')} #{t.name}"
+end
+
+desc "mJPEG"
+file "shrunk.jpg" => ["shrunk.fits"] do |t|
+  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -1.5s 60s gaussian -out #{t.name}"
+end
+
+desc "mAdd"
+file "mosaic.fits" => ["cimages.tbl", REGION_HDR] do |t|
+  sh "mAdd -n -e -p c #{t.prerequisites.join(' ')} #{t.name}"
+end
+
+desc "mJPEG"
+file "mosaic.jpg" => ["mosaic.fits"] do |t|
+  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -1.5s 60s gaussian -out #{t.name}"
+end
