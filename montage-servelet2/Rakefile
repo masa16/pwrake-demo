@@ -126,5 +126,5 @@ end
 
 desc "mJPEG"
 file "shrunk.jpg" => ["shrunk.fits"] do |t|
-  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -1.5s 60s gaussian -out #{t.name}"
+  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -0s '99.8%' gaussian -out #{t.name}"
 end
