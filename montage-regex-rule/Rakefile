@@ -54,17 +54,17 @@ end
 
 ### bg-model
 desc "mBgModel"
-file "corrections.tbl" => ["fits.tbl", "pimages.tbl"] do
-  sh "mBgModel pimages.tbl fits.tbl corrections.tbl"
+file "corrections.tbl" => ["fits.tbl", RIMAGES_TBL] do
+  sh "mBgModel #{RIMAGES_TBL} fits.tbl corrections.tbl"
 end
 
 ### background correction
 C_IMGTBL=[]
 
 desc "mBackground"
-rule %r|^c/.*\.fits$| => ["p/%f",REGION_HDR,"corrections.tbl"] do |t|
+rule %r|^c/.*\.fits$| => ["p/%f",REGION_HDR,"corrections.tbl",RIMAGES_TBL] do |t|
   src = File.basename(t.prerequisites[0])
-  sh "(cd p; mBackground -t #{src} ../#{t.name} ../pimages.tbl ../corrections.tbl)" do |ok,status|
+  sh "(cd p; mBackground -t #{src} ../#{t.name} ../#{RIMAGES_TBL} ../corrections.tbl)" do |ok,status|
     Montage.collect_imgtbl(t, C_IMGTBL) if ok
   end
 end

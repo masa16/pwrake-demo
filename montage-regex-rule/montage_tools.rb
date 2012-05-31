@@ -2,7 +2,7 @@ require 'fileutils'
 
 module Montage
 
-  @@original_workflow = false
+  @@original_workflow = true
 
   def original_workflow=(cond)
     @@original_workflow=cond
