@@ -1,5 +1,4 @@
 load "Rakefile.common"
-#require './pwrakedemo.rb'
 
 ### Default task
 #task :default => "shrunk.jpg"
