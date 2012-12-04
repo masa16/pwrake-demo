@@ -1,8 +1,9 @@
 load "Rakefile.common"
+load "Rakefile.clean"
 
 ### Default task
 #task :default => "shrunk.jpg"
-task :default => "mosaic.jpg"
+#task :default => "mosaic.jpg"
 mkdir_p %w[p d c t s]
 
 ### projection

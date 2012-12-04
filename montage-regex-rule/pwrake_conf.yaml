@@ -1,0 +1,5 @@
+PROFILE : true
+GNU_TIME : true
+#TRACE : true
+LOGFILE : true
+HOSTFILE : hosts

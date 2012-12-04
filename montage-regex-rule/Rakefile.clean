@@ -1,0 +1,8 @@
+require 'rake/clean'
+
+CLEAN.include %w[ p d c s ]
+CLEAN.include %w[ pimages.tbl cimages.tbl simages.tbl ]
+CLEAN.include %w[ fits.tbl fittxt.tbl corrections.tbl ]
+CLOBBER.include %w[ shrunk.fits shrunk_area.fits shrunk.jpg ]
+CLOBBER.include %w[ mosaic.fits mosaic_area.fits mosaic.jpg ]
+CLOBBER.include %w[ diffs.tbl t ]
