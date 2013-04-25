@@ -2,9 +2,11 @@ load "Rakefile.common"
 load "Rakefile.clean"
 
 ### Default task
-#task :default => "shrunk.jpg"
+task :default => "shrunk.jpg"
 #task :default => "mosaic.jpg"
-mkdir_p %w[p d c t s]
+%w[p d c t s].each do |x|
+  directory x
+end
 
 ### projection
 rimgs = Montage.read_image_tbl(RIMAGES_TBL)
@@ -12,7 +14,7 @@ IMGS = rimgs.map{|x| File.basename(x["fname"])}
 P_IMGTBL = []
 
 desc "mProjectPP"
-rule %r|^p/.*\.fits$| => ["r/%f",REGION_HDR] do |t|
+rule %r|^p/.*\.fits$| => ["r/%f",REGION_HDR,"p"] do |t|
   sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do |ok,status|
     Montage.collect_imgtbl(t, P_IMGTBL) if ok
   end
@@ -32,7 +34,7 @@ end
 Montage.write_fittxt_tbl("fittxt.tbl", diffs)
 
 desc "mDiff"
-rule %r|^d/.*\.fits$| => proc{|x| DIFF_HASH[x]} do |t|
+rule %r|^d/.*\.fits$| => [proc{|x| DIFF_HASH[x]},"d"] do |t|
   p1,p2 = t.prerequisites
   /diff\.(\d+)\.(\d+)\./ =~ t.name
   c = [$1.to_i, $2.to_i]
@@ -57,7 +59,7 @@ end
 C_IMGTBL=[]
 
 desc "mBackground"
-rule %r|^c/.*\.fits$| => ["p/%f",REGION_HDR,"corrections.tbl",RIMAGES_TBL] do |t|
+rule %r|^c/.*\.fits$| => ["p/%f",REGION_HDR,"corrections.tbl",RIMAGES_TBL,'c'] do |t|
   src = File.basename(t.prerequisites[0])
   sh "(cd p; mBackground -t #{src} ../#{t.name} ../#{RIMAGES_TBL} ../corrections.tbl)" do |ok,status|
     Montage.collect_imgtbl(t, C_IMGTBL) if ok
@@ -83,7 +85,7 @@ madd_deps = proc do |tile_fits|
 end
 
 desc "mAdd"
-rule %r|^t/tile_.*\.fits$| => madd_deps do |t|
+rule %r|^t/tile_.*\.fits$| => [madd_deps,"t"] do |t|
   a = t.prerequisites[0..1].join(" ")
   sh "mAdd -e -p c #{a} #{t.name} "
 end
@@ -91,7 +93,7 @@ end
 S_IMGTBL = []
 
 desc "mShrink"
-rule %r|^s/tile_.*\.fits$| => "t/%n.fits" do |t|
+rule %r|^s/tile_.*\.fits$| => ["t/%n.fits","s"] do |t|
   sh "mShrink #{t.prerequisites[0]} #{t.name} #{SHRINK_FACTOR}"
   Montage.collect_imgtbl(t, S_IMGTBL)
 end

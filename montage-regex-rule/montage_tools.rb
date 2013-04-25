@@ -1,15 +1,21 @@
 require 'fileutils'
 
 module Montage
+  self.extend Rake::DSL
 
-  @@original_workflow = true
+  @@original_workflow = false
+
+  module_function
 
   def original_workflow=(cond)
     @@original_workflow=cond
   end
 
-  module_function :'original_workflow='
-
+  if ! defined? Pwrake
+    def bq(a)
+      `#{a}`
+    end
+  end
 
   def read_overlap_tbl(table)
     result = []
@@ -21,9 +27,6 @@ module Montage
     end
     result
   end
-
-  module_function :read_overlap_tbl
-
 
   def write_fitfits_tbl(results, file)
     open(file,"w") do |f|
@@ -51,9 +54,6 @@ module Montage
     end
   end
 
-  module_function :write_fitfits_tbl
-
-
   def write_fits_tbl(results, fittxt_file, fits_file)
     if @@original_workflow
       sh "mConcatFit #{fittxt_file} #{fits_file} d"
@@ -62,13 +62,10 @@ module Montage
     end
   end
 
-  module_function :write_fits_tbl
-
 
   def collect_imgtbl( t, ary )
     if ! @@original_workflow
-      #q = sh "mImgHdr #{t.name}"
-      q = `mImgHdr #{t.name}`
+      q = bq "mImgHdr #{t.name}"
       if q
         ary << q.chomp+" "+File.basename(t.name)
       else
@@ -76,8 +73,6 @@ module Montage
       end
     end
   end
-
-  module_function :collect_imgtbl
 
 
   def write_imgtbl(imgtbl, tblfile)
@@ -95,8 +90,6 @@ module Montage
     end
   end
 
-  module_function :write_imgtbl
-
 
   def put_imgtbl( ary, dir, tblname )
     if @@original_workflow
@@ -105,8 +98,6 @@ module Montage
       write_imgtbl(ary, tblname)
     end
   end
-
-  module_function :put_imgtbl
 
 
   def write_fittxt_tbl( file, dif_tbl )
@@ -124,22 +115,18 @@ module Montage
     end
   end
 
-  module_function :write_fittxt_tbl
-
 
   def fitplane( files, task, tbl )
     if @@original_workflow
       fn = task.name.sub(/diff\.(.*)\.fits$/,'fit.\1.txt')
       sh "mFitplane -s #{fn} #{task.name}"
     else
-      tbl << [files,`mFitplane #{task.name}`]
+      tbl << [files,bq("mFitplane #{task.name}")]
     end
   end
 
-  module_function :fitplane
 
   def read_image_tbl(table)
-    #puts "read_image_tbl #{table}"
     r = open(table,"r")
     l = r.gets
     if /^\\/ =~ l
@@ -169,6 +156,4 @@ module Montage
     r.close
     table
   end
-  module_function :read_image_tbl
-
 end

@@ -1,5 +1,6 @@
 PROFILE : true
-GNU_TIME : true
-#TRACE : true
+#GNU_TIME : true
 LOGFILE : true
 HOSTFILE : hosts
+#HALT_QUEUE_WHILE_SEARCH: true
+#DISABLE_AFFINITY: true
