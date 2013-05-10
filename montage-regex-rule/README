@@ -1,0 +1,21 @@
+= Montage workflow Rakefile
+
+* Prepare Input files
+ * r/*.fits
+ * r/region.hdr
+ * r/shrunk.hdr
+ * r/rimages.tbl
+
+* Prepare Initial files
+
+ $ rake -f Rakefile.prepare
+
+* Edit options
+
+ $ vi pwrake_conf.yaml
+ $ vi hosts
+
+* Run Pwrake
+
+ $ pwrake
+
