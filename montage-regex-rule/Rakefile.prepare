@@ -1,7 +1,7 @@
 load "Rakefile.common"
 
 # Make directories
-mkdir_p ["p","d","c","s","t"]
+directory "t"
 
 file RIMAGES_TBL do
   sh"(cd #{INPUT_DIR}; mImgtbl . /tmp/rimages_all.tbl)"
@@ -14,7 +14,7 @@ file "diffs.tbl" => RIMAGES_TBL do
 end
 
 desc "mTileHdr"
-rule %r|^t/tile_(\d+)_(\d+).hdr$| => [REGION_HDR] do |t|
+rule %r|^t/tile_(\d+)_(\d+).hdr$| => [REGION_HDR,"t"] do |t|
   /tile_(\d+)_(\d+)\./ =~ t.name
   opt="#{NX} #{NY} #{$1} #{$2} 10 10"
   sh "mTileHdr #{t.prerequisites[0]} #{t.name} #{opt}"

@@ -25,7 +25,6 @@ FIT_TBL=[]
 DIFF_FITS=[]
 DIFF_HASH={}
 
-sh "mOverlaps #{RIMAGES_TBL} diffs.tbl"
 diffs = Montage.read_overlap_tbl("diffs.tbl")
 diffs.each do |c|
   DIFF_FITS << d = "d/"+c[4]

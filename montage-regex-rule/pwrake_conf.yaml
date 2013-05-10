@@ -1,5 +1,6 @@
 PROFILE : true
 #GNU_TIME : true
+PLOT_PARALLELISM : true
 LOGFILE : true
 HOSTFILE : hosts
 #HALT_QUEUE_WHILE_SEARCH: true

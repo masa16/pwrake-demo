@@ -19,3 +19,5 @@ TILE_PIXEL=2000
 SHRINK_FACTOR=10
 NX = [(TILE_NX || NAXIS1/TILE_PIXEL).to_i, 4].max
 NY = [(TILE_NY || NAXIS2/TILE_PIXEL).to_i, 4].max
+
+task :dummy 
