@@ -1,21 +1,56 @@
-load "Rakefile.common"
+require './params'
+require './montage_tools'
 
-# Make directories
+orig_tbl = "#{INPUT_DIR}/all_images.tbl"
+
+desc "mImgtbl(input)"
+file orig_tbl do |t|
+  sh "mImgtbl #{INPUT_DIR} #{t.name}"
+end
+
+desc "mMakeHdr"
+file REGION_HDR => orig_tbl do |t|
+  sh "mMakeHdr #{t.prerequisites[0]} #{t.name}"
+end
+
+desc SHRUNK_HDR
+file SHRUNK_HDR => REGION_HDR do |t|
+  open(t.prerequisites[0],'r') do |r|
+    open(t.name,'w') do |w|
+      while s = r.gets
+        case s
+        when /^(NAXIS\d\s*=\s*)(\d+)/
+          k,v = $1,$2
+          n = (v.to_f / SHRINK_FACTOR).ceil
+          w.printf "%s%d\n",k,n
+        when /^(CDELT\d\s*=\s*)(\S+)/
+          k,v = $1,$2
+          n = v.to_f * SHRINK_FACTOR
+          w.printf "%s%f\n",k,n
+        when /^(CRPIX\d\s*=\s*)(\S+)/
+          k,v = $1,$2
+          n = v.to_f / SHRINK_FACTOR
+          w.printf "%s%f\n",k,n
+        else
+          w.print s
+        end
+      end
+    end
+  end
+  puts "wrote #{t.name}"
+end
+
+desc "mSubset"
+file IMAGES_TBL => [orig_tbl,REGION_HDR] do |t|
+  sh "mSubset #{t.prerequisites.join(' ')} #{t.name}"
+end
+
+desc "mOverlaps"
+file "diffs.tbl" => IMAGES_TBL do |t|
+  sh "mOverlaps #{IMAGES_TBL} #{t.name}"
+end
+
 directory "t"
-
-orig_tbl = "#{INPUT_DIR}/images_all.tbl"
-
-file orig_tbl do
-  sh "mImgtbl #{INPUT_DIR} #{INPUT_DIR}/images_all.tbl"
-end
-
-file IMAGES_TBL => orig_tbl do
-  sh "mSubset #{orig_tbl} #{REGION_HDR} #{IMAGES_TBL}"
-end
-
-file "diffs.tbl" => IMAGES_TBL do
-  sh "mOverlaps #{IMAGES_TBL} diffs.tbl"
-end
 
 desc "mTileHdr"
 rule %r|^t/tile_(\d+)_(\d+).hdr$| => [REGION_HDR,"t"] do |t|
@@ -29,10 +64,16 @@ rule %r|^t/tile_.*\.tbl_test$| => ["%X.hdr",IMAGES_TBL] do |t|
   sh "mCoverageCheck #{IMAGES_TBL} #{t.name} -header #{t.prerequisites[0]}"
 end
 
+if !File.exist? REGION_HDR
+  (task REGION_HDR).invoke
+end
+
+load 'Rakefile.common'
+
 NY.times do |j|
   NX.times do |i|
     task :tbl_test => "t/tile_#{i}_#{j}.tbl_test"
   end
 end
 
-task :default => ["diffs.tbl",:tbl_test]
+task :default => ["diffs.tbl",:tbl_test,SHRUNK_HDR]
