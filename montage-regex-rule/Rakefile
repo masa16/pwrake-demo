@@ -1,23 +1,25 @@
 load "Rakefile.common"
 load "Rakefile.clean"
 
-### Default task
-task :default => "shrunk.jpg"
-#task :default => "mosaic.jpg"
+### default task
+if NX*NY < 4
+  task :default => "mosaic.jpg"
+  puts "NX=#{NX} NY=#{NY}, default: mosaic.jpg"
+else
+  task :default => "shrunk.jpg"
+  puts "NX=#{NX} NY=#{NY}, default: shrunk.jpg"
+end
+
 %w[p d c t s].each do |x|
   directory x
 end
 
-### projection
-rimgs = Montage.read_image_tbl(RIMAGES_TBL)
-IMGS = rimgs.map{|x| File.basename(x["fname"])}
-P_IMGTBL = []
+IMGTBL = Montage.read_image_tbl(IMAGES_TBL)
 
+### projection
 desc "mProjectPP"
-rule %r|^p/.*\.fits$| => ["r/%f",REGION_HDR,"p"] do |t|
-  sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do |ok,status|
-    Montage.collect_imgtbl(t, P_IMGTBL) if ok
-  end
+rule %r|^p/.*\.fits$| => ["r/%n."+INPUT_SUFFIX,REGION_HDR,"p"] do |t|
+  sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do end
 end
 
 ### dif & fit
@@ -50,23 +52,28 @@ end
 
 ### bg-model
 desc "mBgModel"
-file "corrections.tbl" => ["fits.tbl", RIMAGES_TBL] do
-  sh "mBgModel #{RIMAGES_TBL} fits.tbl corrections.tbl"
+file "corrections.tbl" => ["fits.tbl", IMAGES_TBL] do
+  sh "mBgModel -a #{IMAGES_TBL} fits.tbl corrections.tbl"
+end
+
+### load corrections
+task "load_corrections" => "corrections.tbl" do |t|
+  CORRECTION = Montage.load_corrections(t.prerequisites[0],IMGTBL)
 end
 
 ### background correction
-C_IMGTBL=[]
-
 desc "mBackground"
-rule %r|^c/.*\.fits$| => ["p/%f",REGION_HDR,"corrections.tbl",RIMAGES_TBL,'c'] do |t|
+C_IMGTBL=[]
+rule %r|^c/.*\.fits$| => ["p/%f","load_corrections",'c'] do |t|
   src = File.basename(t.prerequisites[0])
-  sh "(cd p; mBackground -t #{src} ../#{t.name} ../#{RIMAGES_TBL} ../corrections.tbl)" do |ok,status|
+  params = CORRECTION[src]
+  sh "mBackground p/#{src} #{t.name} #{params}" do |ok,status|
     Montage.collect_imgtbl(t, C_IMGTBL) if ok
   end
 end
 
-desc "put_imgtbl"
-file "cimages.tbl" => IMGS.map{|x| "c/"+x} do |t|
+desc "mImgtbl"
+file "cimages.tbl" => IMGTBL.map{|x| "c/"+File.basename(x["fname"])} do |t|
   Montage.put_imgtbl(C_IMGTBL, "c", "cimages.tbl")
 end
 
@@ -89,15 +96,14 @@ rule %r|^t/tile_.*\.fits$| => [madd_deps,"t"] do |t|
   sh "mAdd -e -p c #{a} #{t.name} "
 end
 
-S_IMGTBL = []
-
 desc "mShrink"
+S_IMGTBL = []
 rule %r|^s/tile_.*\.fits$| => ["t/%n.fits","s"] do |t|
   sh "mShrink #{t.prerequisites[0]} #{t.name} #{SHRINK_FACTOR}"
   Montage.collect_imgtbl(t, S_IMGTBL)
 end
 
-desc "put_imgtbl"
+desc "mImgtbl"
 file "simages.tbl" do
   Montage.put_imgtbl(S_IMGTBL, "s", "simages.tbl")
 end
@@ -108,6 +114,7 @@ NY.times do |j|
   end
 end
 
+### add up to shurnk.fits
 desc "mAdd"
 file "shrunk.fits" => ["simages.tbl", SHRUNK_HDR] do |t|
   sh "mAdd -n -e -p s #{t.prerequisites.join(' ')} #{t.name}"
@@ -115,9 +122,10 @@ end
 
 desc "mJPEG"
 file "shrunk.jpg" => ["shrunk.fits"] do |t|
-  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -1.5s 60s gaussian -out #{t.name}"
+  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -0s '99.5%' gaussian -out #{t.name}"
 end
 
+### add up to mosaic.fits
 desc "mAdd"
 file "mosaic.fits" => ["cimages.tbl", REGION_HDR] do |t|
   sh "mAdd -n -e -p c #{t.prerequisites.join(' ')} #{t.name}"
@@ -125,5 +133,5 @@ end
 
 desc "mJPEG"
 file "mosaic.jpg" => ["mosaic.fits"] do |t|
-  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -1.5s 60s gaussian -out #{t.name}"
+  sh "mJPEG -ct 0 -gray #{t.prerequisites[0]} -0s '99.5%' gaussian -out #{t.name}"
 end

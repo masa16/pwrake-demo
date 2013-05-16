@@ -29,4 +29,11 @@ rhosts
 montage*/?
 montage*/*.fits
 montage*/*.jpg
+montage*/*.jpeg
 montage*/*.tbl
+montage*/*.log
+montage*/*.csv
+montage*/*.dat
+montage*/*.png
+montage*/log*
+montage*/hosts*

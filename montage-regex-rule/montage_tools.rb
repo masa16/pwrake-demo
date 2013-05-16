@@ -22,7 +22,10 @@ module Montage
     File.open(table) do |r|
       2.times{r.gets}
       while l=r.gets
-        result << l.split
+        a = l.split
+        a[2].sub!(/.fit(.gz)?$/,".fits")
+        a[3].sub!(/.fit(.gz)?$/,".fits")
+        result << a
       end
     end
     result
@@ -31,7 +34,7 @@ module Montage
   def write_fitfits_tbl(results, file)
     open(file,"w") do |f|
       f.puts '| plus|minus|       a    |      b     |      c     | crpix1  | crpix2  | xmin | xmax | ymin | ymax | xcenter | ycenter |  npixel |    rms     |    boxx    |    boxy    |  boxwidth  | boxheight  |   boxang   |'
-      n = "([0-9.e-]+)"
+      n = "([0-9.e+-]+)"
       results.each do |a|
         name, r = a
         r = r[0] if r.kind_of?(Array)
@@ -41,14 +44,14 @@ module Montage
         when /\.(\d+)\.(\d+)\./
           idx = $1,$2
         else
-          puts "unmach1 : #{name}"
+          puts "unmatch1: #{name}"
           raise
         end
         if /a=#{n}, b=#{n}, c=#{n}, crpix1=#{n}, crpix2=#{n}, xmin=#{n}, xmax=#{n}, ymin=#{n}, ymax=#{n}, xcenter=#{n}, ycenter=#{n}, npixel=#{n}, rms=#{n}, boxx=#{n}, boxy=#{n}, boxwidth=#{n}, boxheight=#{n}, boxang=#{n}/ =~ r
           args = (idx+Regexp.last_match[1..-1]).map{|x| x.to_f}
           f.puts " %5d %5d %12.5e %12.5e %12.5e %9.2f %9.2f %6d %6d %6d %6d %9.2f %9.2f %9.0f %12.5e %12.1f %12.1f %12.1f %12.1f %12.1f" % args
         else
-          puts "unmach2 : #{r}"
+          puts "unmatch2: #{r}"
         end
       end
     end
@@ -147,13 +150,36 @@ module Montage
 
     table = []
     while l
-        table << row = {}
-        columns.each do |name,ofs|
-          row[name] = l[ofs[0]..ofs[1]].strip
-        end
-        l = r.gets
+      table << row = {}
+      columns.each do |name,ofs|
+        row[name] = l[ofs[0]..ofs[1]].strip
+      end
+      row['fname'].sub!(/.fit(.gz)?$/,".fits")
+      l = r.gets
     end
     r.close
     table
   end
+
+
+  def load_corrections(file,imgtbl)
+    corrections = {}
+    id2fname = {}
+    imgtbl.each do |x|
+      id2fname[x["cntr"]] = File.basename(x["fname"])
+    end
+    open(file,'r') do |f|
+      f.gets # skip header
+      while s=f.gets
+        if /^\s+(\d+)\s+(.*)$/ =~ s
+          id,param = $1,$2
+          corrections[id2fname[id]] = param
+        else
+          print "unmatch3: #{s}"
+        end
+      end
+    end
+    corrections
+  end
+
 end

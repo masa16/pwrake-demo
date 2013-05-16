@@ -1,8 +1,10 @@
 # Settings
-INPUT_DIR = "r"
-REGION_HDR = "#{INPUT_DIR}/region.hdr"
-SHRUNK_HDR = "#{INPUT_DIR}/shrunken.hdr"
-RIMAGES_TBL = "#{INPUT_DIR}/rimages.tbl"
+INPUT_DIR    = ENV['INPUT_DIR']    || "r"
+INPUT_SUFFIX = ENV['INPUT_SUFFIX'] || "fits"
+
+REGION_HDR = ENV['REGION_HDR'] || INPUT_DIR+"/region.hdr"
+SHRUNK_HDR = ENV['SHRUNK_HDR'] || INPUT_DIR+"/shrunken.hdr"
+IMAGES_TBL = ENV['IMAGES_TBL'] || "images.tbl"
 
 # Image size
 require './montage_tools.rb'
@@ -17,7 +19,7 @@ TILE_NX = ENV["TILE_NX"]
 TILE_NY = ENV["TILE_NY"]
 TILE_PIXEL=2000
 SHRINK_FACTOR=10
-NX = [(TILE_NX || NAXIS1/TILE_PIXEL).to_i, 4].max
-NY = [(TILE_NY || NAXIS2/TILE_PIXEL).to_i, 4].max
+NX = (TILE_NX || [NAXIS1/TILE_PIXEL,1].max).to_i
+NY = (TILE_NY || [NAXIS2/TILE_PIXEL,1].max).to_i
 
-task :dummy 
+task :dummy

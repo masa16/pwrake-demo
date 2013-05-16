@@ -3,14 +3,18 @@ load "Rakefile.common"
 # Make directories
 directory "t"
 
-file RIMAGES_TBL do
-  sh"(cd #{INPUT_DIR}; mImgtbl . /tmp/rimages_all.tbl)"
-  sh"(cd #{INPUT_DIR}; mSubset /tmp/rimages_all.tbl region.hdr /tmp/rimages.tbl)"
-  sh "mv /tmp/rimages.tbl #{INPUT_DIR}/"
+orig_tbl = "#{INPUT_DIR}/images_all.tbl"
+
+file orig_tbl do
+  sh "mImgtbl #{INPUT_DIR} #{INPUT_DIR}/images_all.tbl"
 end
 
-file "diffs.tbl" => RIMAGES_TBL do
-  sh "mOverlaps #{RIMAGES_TBL} diffs.tbl"
+file IMAGES_TBL => orig_tbl do
+  sh "mSubset #{orig_tbl} #{REGION_HDR} #{IMAGES_TBL}"
+end
+
+file "diffs.tbl" => IMAGES_TBL do
+  sh "mOverlaps #{IMAGES_TBL} diffs.tbl"
 end
 
 desc "mTileHdr"
@@ -21,8 +25,8 @@ rule %r|^t/tile_(\d+)_(\d+).hdr$| => [REGION_HDR,"t"] do |t|
 end
 
 desc "mCoverageCheck"
-rule %r|^t/tile_.*\.tbl_test$| => ["%X.hdr",RIMAGES_TBL] do |t|
-  sh "mCoverageCheck #{RIMAGES_TBL} #{t.name} -header #{t.prerequisites[0]}"
+rule %r|^t/tile_.*\.tbl_test$| => ["%X.hdr",IMAGES_TBL] do |t|
+  sh "mCoverageCheck #{IMAGES_TBL} #{t.name} -header #{t.prerequisites[0]}"
 end
 
 NY.times do |j|
