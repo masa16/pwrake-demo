@@ -26,11 +26,11 @@ file SHRUNK_HDR => REGION_HDR do |t|
         when /^(CDELT\d\s*=\s*)(\S+)/
           k,v = $1,$2
           n = v.to_f * SHRINK_FACTOR
-          w.printf "%s%f\n",k,n
+          w.printf "%s%.10g\n",k,n
         when /^(CRPIX\d\s*=\s*)(\S+)/
           k,v = $1,$2
           n = v.to_f / SHRINK_FACTOR
-          w.printf "%s%f\n",k,n
+          w.printf "%s%.10g\n",k,n
         else
           w.print s
         end
