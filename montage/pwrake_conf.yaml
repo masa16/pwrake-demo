@@ -1,7 +1,8 @@
+HOSTFILE : hosts
 PROFILE : true
 #GNU_TIME : true
 PLOT_PARALLELISM : true
 LOGFILE : true
-HOSTFILE : hosts
+TASKLOG : true
 #HALT_QUEUE_WHILE_SEARCH: true
 #DISABLE_AFFINITY: true
