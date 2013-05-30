@@ -1,6 +1,7 @@
-load "Rakefile.common"
 load "Rakefile.clean"
 require './montage_tools'
+require './params'
+require './tile_param'
 
 ### default task
 if NX*NY < 4

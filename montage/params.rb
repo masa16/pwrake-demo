@@ -6,4 +6,8 @@ REGION_HDR = ENV['REGION_HDR'] || INPUT_DIR+"/region.hdr"
 SHRUNK_HDR = ENV['SHRUNK_HDR'] || INPUT_DIR+"/shrunken.hdr"
 IMAGES_TBL = ENV['IMAGES_TBL'] || "images.tbl"
 
-SHRINK_FACTOR = 10
+# Tile parameter
+TILE_PIXEL = 2500
+SHRINK_FACTOR = 20
+
+task :dummy

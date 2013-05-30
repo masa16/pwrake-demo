@@ -13,6 +13,30 @@ file REGION_HDR => orig_tbl do |t|
   sh "mMakeHdr #{t.prerequisites[0]} #{t.name}"
 end
 
+tile_param = 'tile_param.rb'
+file tile_param => REGION_HDR do |t|
+  open(t.name,'w') do |w|
+    naxis = []
+    open(t.prerequisites[0],'r') do |r|
+      while l = r.gets
+        if /NAXIS([12])\s*=\s*(\d+)/ =~ l
+          naxis[$1.to_i] = $2.to_i
+        end
+      end
+    end
+    nx = [naxis[1]/TILE_PIXEL,1].max
+    ny = [naxis[2]/TILE_PIXEL,1].max
+    w.puts "NX=#{nx}"
+    w.puts "NY=#{ny}"
+  end
+end
+
+if !File.exist? tile_param
+  (task tile_param).invoke
+end
+
+require './tile_param'
+
 desc SHRUNK_HDR
 file SHRUNK_HDR => REGION_HDR do |t|
   open(t.prerequisites[0],'r') do |r|
@@ -53,7 +77,7 @@ end
 directory "t"
 
 desc "mTileHdr"
-rule %r|^t/tile_(\d+)_(\d+).hdr$| => [REGION_HDR,"t"] do |t|
+rule %r|^t/tile_(\d+)_(\d+).hdr$| => [REGION_HDR,tile_param,'t'] do |t|
   /tile_(\d+)_(\d+)\./ =~ t.name
   opt="#{NX} #{NY} #{$1} #{$2} 10 10"
   sh "mTileHdr #{t.prerequisites[0]} #{t.name} #{opt}"
@@ -64,11 +88,6 @@ rule %r|^t/tile_.*\.tbl_test$| => ["%X.hdr",IMAGES_TBL] do |t|
   sh "mCoverageCheck #{IMAGES_TBL} #{t.name} -header #{t.prerequisites[0]}"
 end
 
-if !File.exist? REGION_HDR
-  (task REGION_HDR).invoke
-end
-
-load 'Rakefile.common'
 
 NY.times do |j|
   NX.times do |i|
