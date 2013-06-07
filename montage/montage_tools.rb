@@ -8,7 +8,8 @@ module Montage
   module_function
 
   def original_workflow=(cond)
-    @@original_workflow=cond
+    @@original_workflow = TrueClass===cond || (String===cond && /^(no?|false)?$/i !~ cond)
+    puts "Montage.original_workflow=#{@@original_workflow.inspect}"
   end
 
   if ! defined? Pwrake
@@ -44,14 +45,14 @@ module Montage
         when /\.(\d+)\.(\d+)\./
           idx = $1,$2
         else
-          puts "unmatch1: #{name}"
+          print "unmatch1: #{name}\n"
           raise
         end
         if /a=#{n}, b=#{n}, c=#{n}, crpix1=#{n}, crpix2=#{n}, xmin=#{n}, xmax=#{n}, ymin=#{n}, ymax=#{n}, xcenter=#{n}, ycenter=#{n}, npixel=#{n}, rms=#{n}, boxx=#{n}, boxy=#{n}, boxwidth=#{n}, boxheight=#{n}, boxang=#{n}/ =~ r
           args = (idx+Regexp.last_match[1..-1]).map{|x| x.to_f}
           f.puts " %5d %5d %12.5e %12.5e %12.5e %9.2f %9.2f %6d %6d %6d %6d %9.2f %9.2f %9.0f %12.5e %12.1f %12.1f %12.1f %12.1f %12.1f" % args
         else
-          puts "unmatch2: #{r}"
+          print "unmatch2: #{r}\n"
         end
       end
     end
@@ -61,6 +62,7 @@ module Montage
     if @@original_workflow
       sh "mConcatFit #{fittxt_file} #{fits_file} d"
     else
+      puts "mConcatFit #{fittxt_file} #{fits_file} d #(in Montage.write_fits_tbl)"
       write_fitfits_tbl(results, fits_file)
     end
   end
@@ -83,7 +85,6 @@ module Montage
     imgtbl.each{|x| maxlen=x.size if x.size>maxlen}
     nspc = maxlen-243
     nspc = 0 if nspc<0
-    puts "Montage.write_imgtbl: writing to #{tblfile}..."
     open(tblfile,"w") do |f|
       f.puts '\datatype = fitshdr'
       f.puts "| cntr |      ra     |     dec     |      cra     |     cdec     |naxis1|naxis2| ctype1 | ctype2 |     crpix1    |     crpix2    |    crval1   |    crval2   |      cdelt1     |      cdelt2     |   crota2    |equinox |    size    | hdu  | fname"+" "*nspc+"|"
@@ -98,6 +99,7 @@ module Montage
     if @@original_workflow
       sh "mImgtbl #{dir} #{tblname}"
     elsif !ary.empty?
+      puts "mImgtbl #{dir} #{tblname} #(in Montage.put_imgtbl)"
       write_imgtbl(ary, tblname)
     end
   end
@@ -175,7 +177,7 @@ module Montage
           id,param = $1,$2
           corrections[id2fname[id]] = param
         else
-          print "unmatch3: #{s}"
+          print "unmatch3: #{s}\n"
         end
       end
     end

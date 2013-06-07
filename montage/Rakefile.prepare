@@ -1,5 +1,4 @@
 require './params'
-require './montage_tools'
 
 orig_tbl = "#{INPUT_DIR}/all_images.tbl"
 
@@ -13,8 +12,10 @@ file REGION_HDR => orig_tbl do |t|
   sh "mMakeHdr #{t.prerequisites[0]} #{t.name}"
 end
 
+task(REGION_HDR).invoke
+
 tile_param = 'tile_param.rb'
-file tile_param => REGION_HDR do |t|
+file tile_param do |t|
   open(t.name,'w') do |w|
     naxis = []
     open(t.prerequisites[0],'r') do |r|
@@ -31,9 +32,7 @@ file tile_param => REGION_HDR do |t|
   end
 end
 
-if !File.exist? tile_param
-  (task tile_param).invoke
-end
+task(tile_param).invoke
 
 require './tile_param'
 

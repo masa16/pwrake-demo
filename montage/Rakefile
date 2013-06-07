@@ -1,5 +1,4 @@
 load "Rakefile.clean"
-require './montage_tools'
 require './params'
 require './tile_param'
 
@@ -28,7 +27,6 @@ end
 FIT_TBL=[]
 DIFF_FITS=[]
 DIFF_HASH={}
-
 diffs = Montage.read_overlap_tbl("diffs.tbl")
 diffs.each do |c|
   DIFF_FITS << d = "d/"+c[4]
@@ -77,6 +75,9 @@ end
 desc "mImgtbl"
 file "cimages.tbl" => IMGTBL.map{|x| "c/"+File.basename(x["fname"])} do |t|
   Montage.put_imgtbl(C_IMGTBL, "c", "cimages.tbl")
+  if ENV['REP_CIMGTBL']
+    sh "gfrep -N #{`gfhost`.split(/\n/).size} cimages.tbl"
+  end
 end
 
 ### tile region
@@ -105,15 +106,15 @@ rule %r|^s/tile_.*\.fits$| => ["t/%n.fits","s"] do |t|
   Montage.collect_imgtbl(t, S_IMGTBL)
 end
 
-desc "mImgtbl"
-file "simages.tbl" do
-  Montage.put_imgtbl(S_IMGTBL, "s", "simages.tbl")
-end
-
 NY.times do |j|
   NX.times do |i|
-    file "simages.tbl" => "s/tile_#{i}_#{j}.fits"
+    task :s_tile_fits => "s/tile_#{i}_#{j}.fits"
   end
+end
+
+desc "mImgtbl"
+file "simages.tbl" => :s_tile_fits do
+  Montage.put_imgtbl(S_IMGTBL, "s", "simages.tbl")
 end
 
 ### add up to shurnk.fits
