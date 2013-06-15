@@ -18,7 +18,7 @@ tile_param = 'tile_param.rb'
 file tile_param do |t|
   open(t.name,'w') do |w|
     naxis = []
-    open(t.prerequisites[0],'r') do |r|
+    open(REGION_HDR,'r') do |r|
       while l = r.gets
         if /NAXIS([12])\s*=\s*(\d+)/ =~ l
           naxis[$1.to_i] = $2.to_i
