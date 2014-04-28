@@ -16,11 +16,19 @@ end
 end
 
 IMGTBL = Montage.read_image_tbl(IMAGES_TBL)
+P_IMGTBL=[]
 
 ### projection
 desc "mProjectPP"
 rule %r|^p/.*\.fits$| => ["r/%n."+INPUT_SUFFIX,REGION_HDR,"p"] do |t|
-  sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do end
+  sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do |ok,status|
+    Montage.collect_imgtbl(t, P_IMGTBL) if ok
+  end
+end
+
+desc "mImgtbl"
+file "pimages.tbl" => IMGTBL.map{|x| "p/"+File.basename(x["fname"])} do |t|
+  Montage.put_imgtbl(P_IMGTBL, "p", "pimages.tbl")
 end
 
 ### dif & fit
@@ -63,27 +71,16 @@ end
 
 ### background correction
 desc "mBackground"
-C_IMGTBL=[]
 rule %r|^c/.*\.fits$| => ["p/%f","load_corrections",'c'] do |t|
   src = File.basename(t.prerequisites[0])
   params = CORRECTION[src]
-  sh "mBackground p/#{src} #{t.name} #{params}" do |ok,status|
-    Montage.collect_imgtbl(t, C_IMGTBL) if ok
-  end
-end
-
-desc "mImgtbl"
-file "cimages.tbl" => IMGTBL.map{|x| "c/"+File.basename(x["fname"])} do |t|
-  Montage.put_imgtbl(C_IMGTBL, "c", "cimages.tbl")
-  if ENV['REP_CIMGTBL']
-    sh "gfrep -N #{`gfhost`.split(/\n/).size} cimages.tbl"
-  end
+  sh "mBackground p/#{src} #{t.name} #{params}" do end
 end
 
 ### tile region
 desc "mCoverageCheck"
-rule %r|^t/tile_.*\.tbl$| => ["t/%n.hdr","cimages.tbl"] do |t|
-  sh "mCoverageCheck cimages.tbl #{t.name} -header #{t.prerequisites[0]}"
+rule %r|^t/tile_.*\.tbl$| => ["t/%n.hdr","pimages.tbl"] do |t|
+  sh "mCoverageCheck pimages.tbl #{t.name} -header #{t.prerequisites[0]}"
 end
 
 madd_deps = proc do |tile_fits|
@@ -130,7 +127,7 @@ end
 
 ### add up to mosaic.fits
 desc "mAdd"
-file "mosaic.fits" => ["cimages.tbl", REGION_HDR] do |t|
+file "mosaic.fits" => ["pimages.tbl", REGION_HDR] do |t|
   sh "mAdd -n -e -p c #{t.prerequisites.join(' ')} #{t.name}"
 end
 
