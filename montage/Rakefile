@@ -3,13 +3,12 @@ require './params'
 require './tile_param'
 
 ### default task
-if NX*NY < 4
-  task :default => "mosaic.jpg"
-  puts "NX=#{NX} NY=#{NY}, default: mosaic.jpg"
-else
-  task :default => "shrunk.jpg"
-  puts "NX=#{NX} NY=#{NY}, default: shrunk.jpg"
+target = Rake.application.top_level_tasks
+if target == ["default"]
+  target = (NX*NY < 4) ? ["mosaic.jpg"] : ["shrunk.jpg"]
+  task :default => target
 end
+puts "NX=#{NX} NY=#{NY} target=#{target.join(',')}"
 
 %w[p d c t s].each do |x|
   directory x

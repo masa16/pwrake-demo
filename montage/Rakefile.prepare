@@ -1,6 +1,6 @@
 require './params'
 
-orig_tbl = "#{INPUT_DIR}/all_images.tbl"
+orig_tbl = "all_images.tbl"
 
 desc "mImgtbl(input)"
 file orig_tbl do |t|
@@ -8,7 +8,7 @@ file orig_tbl do |t|
 end
 
 desc "mMakeHdr"
-file REGION_HDR => orig_tbl do |t|
+file_create REGION_HDR => orig_tbl do |t|
   sh "mMakeHdr #{t.prerequisites[0]} #{t.name}"
 end
 
@@ -94,4 +94,11 @@ NY.times do |j|
   end
 end
 
-task :default => ["diffs.tbl",:tbl_test,SHRUNK_HDR]
+task "prepare.shrunk" => ["diffs.tbl",:tbl_test,SHRUNK_HDR]
+task "prepare.mosaic" => ["diffs.tbl",REGION_HDR]
+
+target = Rake.application.top_level_tasks
+if target == ["default"]
+  target = (NX*NY < 4) ? ["prepare.mosaic"] : ["prepare.shrunk"]
+  task :default => target
+end
