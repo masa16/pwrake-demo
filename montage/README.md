@@ -1,4 +1,4 @@
-# Montage workflow written in Rakefile
+# [Montage](http://montage.ipac.caltech.edu/) workflow written in Rakefile
 
 * Download Pwrake Demo
 
