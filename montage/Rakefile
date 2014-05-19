@@ -20,7 +20,7 @@ P_IMGTBL=[]
 
 ### projection
 desc "mProjectPP"
-rule %r|^p/.*\.fits$| => ["r/%n."+INPUT_SUFFIX,REGION_HDR,"p"] do |t|
+rule %r|^p/.*\.fits$| => [INPUT_DIR+"/%n."+INPUT_SUFFIX,REGION_HDR,"p"] do |t|
   sh "mProjectPP #{t.prerequisites[0]} #{t.name} #{REGION_HDR}" do |ok,status|
     Montage.collect_imgtbl(t, P_IMGTBL) if ok
   end
@@ -62,16 +62,12 @@ end
 desc "mBgModel"
 file "corrections.tbl" => ["fits.tbl", IMAGES_TBL] do
   sh "mBgModel -a #{IMAGES_TBL} fits.tbl corrections.tbl"
-end
-
-### load corrections
-task "load_corrections" => "corrections.tbl" do |t|
-  CORRECTION = Montage.load_corrections(t.prerequisites[0],IMGTBL)
+  CORRECTION = Montage.load_corrections("corrections.tbl",IMGTBL)
 end
 
 ### background correction
 desc "mBackground"
-rule %r|^c/.*\.fits$| => ["p/%f","load_corrections",'c'] do |t|
+rule %r|^c/.*\.fits$| => ["p/%f","corrections.tbl",'c'] do |t|
   src = File.basename(t.prerequisites[0])
   params = CORRECTION[src]
   sh "mBackground p/#{src} #{t.name} #{params}" do end
@@ -126,9 +122,11 @@ file "shrunk.jpg" => ["shrunk.fits"] do |t|
 end
 
 ### add up to mosaic.fits
+C_IMAGES = IMGTBL.map{|x| "c/"+File.basename(x["fname"])}
+
 desc "mAdd"
-file "mosaic.fits" => ["pimages.tbl", REGION_HDR] do |t|
-  sh "mAdd -n -e -p c #{t.prerequisites.join(' ')} #{t.name}"
+file "mosaic.fits" => C_IMAGES+["pimages.tbl", REGION_HDR] do |t|
+  sh "mAdd -n -e -p c pimages.tbl #{REGION_HDR} #{t.name}"
 end
 
 desc "mJPEG"
