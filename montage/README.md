@@ -20,10 +20,10 @@
 
 * Download and Extract Tutorial files
 
-        $ wget http://montage.ipac.caltech.edu/docs/m101Example/tutorial-initial.tar.gz
         $ tar xzf pwrake-demo-master.tar.gz
         $ cd pwrake-demo-master/montage
-        $ tar xvzf ../../tutorial-initial.tar.gz
+        $ wget http://montage.ipac.caltech.edu/docs/m101Example/tutorial-initial.tar.gz
+        $ tar xvzf tutorial-initial.tar.gz
         m101/
         m101/rawdir/
         m101/rawdir/2mass-atlas-990214n-j1100244.fits
