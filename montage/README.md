@@ -1,6 +1,6 @@
 # Montage workflow written in Rakefile
 
-## Download Pwrake Demo
+* Download Pwrake Demo
 
         $ wget https://github.com/masa16/pwrake-demo/archive/master.tar.gz -O pwrake-demo-master.tar.gz
         $ tar xzf pwrake-demo-master.tar.gz
@@ -16,10 +16,9 @@
         $ make
         $ cp bin/* [somewhere_in_your_path]
 
-## Running Montage with Montage tutorial files
+## Example from [Montage Tutorial](http://montage.ipac.caltech.edu/docs/m101tutorial.html)
 
-* [Montage Tutorial](http://montage.ipac.caltech.edu/docs/m101tutorial.html)
-* Download and Extract files
+* Download and Extract Tutorial files
 
         $ wget http://montage.ipac.caltech.edu/docs/m101Example/tutorial-initial.tar.gz
         $ tar xzf pwrake-demo-master.tar.gz
@@ -56,7 +55,7 @@
         $ rake -f Rakefile.clean clean   # remove workflow-phase files
         $ rake -f Rakefile.clean clobber # remove workflow-and-prepare-phase files
 
-## Option files to edit
+## Option files you might need to edit
 
 * pwrake_conf.yaml
 * hosts
