@@ -1,0 +1,21 @@
+ext = ENV['ext']
+ext = ext ? '.'+ext : ''
+GZ = FileList['*'+ext+'.gz']
+UZ = FileList['*'+ext] - GZ
+
+UZ.each do |x|
+  file x+'.gz' => x do |t|
+    sh "gzip "+t.prerequisite[0]
+  end
+end
+
+task :gzip => UZ.sub(/$/,'.gz')
+
+UGZ = GZ.sub(/\.gz$/,'')
+UGZ.each do |x|
+  file x => x+'.gz' do |t|
+    sh "gunzip "+t.prerequisite[0]
+  end
+end
+
+task :gunzip => UGZ
