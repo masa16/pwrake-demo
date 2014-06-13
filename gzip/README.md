@@ -1,17 +1,17 @@
 # Gzip/gunzip workflow
 
-## Gzip all files in the current directory
+* Gzip all files in the current directory
 
-    pwrake gzip
+        pwrake gzip
 
-## Gunzip all *.gz files in the current directory
+* Gunzip all *.gz files in the current directory
     
-    pwrake gunzip
+        pwrake gunzip
 
-## Gzip all *.fits files in the current directory
+* Gzip all *.fits files in the current directory
 
-    pwrake gzip ext=fits
+        pwrake gzip ext=fits
     
-## Gunzip all *.fits.gz files in the current directory
+* Gunzip all *.fits.gz files in the current directory
 
-    pwrake gzunip ext=fits
+        pwrake gzunip ext=fits
