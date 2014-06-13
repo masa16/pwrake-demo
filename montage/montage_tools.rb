@@ -1,7 +1,7 @@
 require 'fileutils'
 
 module Montage
-  self.extend Rake::DSL
+  self.extend Rake::DSL if defined? Rake
 
   @@original_workflow = false
 
@@ -18,14 +18,18 @@ module Montage
     end
   end
 
+  def fix_suffix(x)
+    x.sub!(/\.fits?(\.gz)?$/,'.fits')
+  end
+
   def read_overlap_tbl(table)
     result = []
     File.open(table) do |r|
       2.times{r.gets}
       while l=r.gets
         a = l.split
-        a[2].sub!(/.fit(.gz)?$/,".fits")
-        a[3].sub!(/.fit(.gz)?$/,".fits")
+        fix_suffix(a[2])
+        fix_suffix(a[3])
         result << a
       end
     end
@@ -156,7 +160,7 @@ module Montage
       columns.each do |name,ofs|
         row[name] = l[ofs[0]..ofs[1]].strip
       end
-      row['fname'].sub!(/.fit(.gz)?$/,".fits")
+      fix_suffix(row['fname'])
       l = r.gets
     end
     r.close
