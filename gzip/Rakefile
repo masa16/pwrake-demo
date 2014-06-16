@@ -1,7 +1,7 @@
 ext = ENV['ext']
 ext = ext ? '.'+ext : ''
 rf = ['Rakefile']
-GZ = FileList['*'+ext+'.gz'] - rf
+GZ = FileList['*'+ext+'.gz']
 UZ = FileList['*'+ext] - GZ - rf
 
 UZ.each do |x|
