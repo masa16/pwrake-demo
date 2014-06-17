@@ -1,6 +1,6 @@
-# Blast Workflow Example
+# Workflow Example: [NCBI BLAST](http://www.ncbi.nlm.nih.gov/BLAST)
 
-* See also [Blast Benchmark](http://fiehnlab.ucdavis.edu/staff/kind/Collector/Benchmark/Blast_Benchmark)
+* See also [BLAST Benchmarks](http://fiehnlab.ucdavis.edu/staff/kind/Collector/Benchmark/Blast_Benchmark)
 
 ## Requirement
 * Obtain Blast programs from ftp://ftp.ncbi.nih.gov/blast/executables/LATEST and put programs to your path.
