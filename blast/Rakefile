@@ -1,0 +1,108 @@
+# Rakefile for Blast Benchmark:
+#  ftp://ftp.ncbi.nih.gov/blast/demo/benchmark/benchmark2013.tar.gz
+require 'rake/clean'
+OUTPUT='output'
+if !ENV['large']
+  NUCDB='db/benchmark.nt'
+  PROTDB='db/benchmark.aa'
+else
+  # a larger data set
+  NUCDB='db/nt.01'
+  PROTDB='db/nr.01'
+end
+NUCDB_FILES = Dir.glob(NUCDB+'.n??')
+PROTDB_FILES = Dir.glob(PROTDB+'.p??')
+BLASTN='blastn -task blastn -use_index false'
+BLASTP='blastp'
+BLASTX='blastx'
+TBLASTN='tblastn'
+TBLASTX='tblastx'
+MEGABLAST='blastn -task megablast -use_index false'
+IDX_MEGABLAST='blastn -task megablast -use_index true'
+MAKEMBINDEX='makembindex -iformat blastdb -old_style_index false'
+QUERY_OPT='-query'
+BLASTN_OPTS=''
+BLASTP_OPTS=''
+BLASTX_OPTS=''
+TBLASTN_OPTS=''
+TBLASTX_OPTS=''
+MEGABLAST_OPTS=''
+TIME='/usr/bin/time -p'
+
+task :default => %w[tblastx tblastn blastx blastn blastp megablast idx_megablast]
+
+CLEAN.include Dir.glob(OUTPUT+'/*/*')
+CLOBBER.include Dir.glob('db/*.idx')
+CLOBBER.include Dir.glob('db/*.shd')
+
+subst = [/^queries(.*)$/,OUTPUT+'\1.out']
+
+task :blastn => FileList['queries/blastn/*'].sub(*subst)
+
+task :megablast => FileList['queries/megablast/??_*'].sub(*subst)
+
+task :idx_megablast => %w[
+ IDX_NM_001000841 IDX_NM_001008511 IDX_NM_007622 IDX_NM_020327
+ IDX_NM_032130 IDX_NM_064997 IDX_NM_071881 IDX_NM_078614 IDX_NM_105954
+ IDX_NM_118167 IDX_NM_127277 IDX_NM_134656 IDX_NM_146415 IDX_NM_167127
+ IDX_NM_180448 IDX_NM_201405 IDX_NM_207059 IDX_NM_214357 IDX_XM_381431
+ IDX_XM_386832 IDX_NG_000006 IDX_NG_007385 IDX_NG_008929 IDX_NG_008953
+].map{|x| "#{OUTPUT}/megablast/#{x}.out"}
+
+task :tblastn => FileList['queries/tblastn/*'].sub(*subst)
+
+task :tblastx => FileList['queries/tblastn/*'].sub(*subst)
+
+task :blastp => FileList['queries/blastp/*'].sub(*subst)
+
+task :blastx => %w[
+ NM_001004160 NM_004838 NM_013165 NM_025457 NM_061919 NM_069868
+ NM_076353 NM_104152 NM_117313 NM_126194 NM_134961 NM_147897 NM_169361
+ NM_198684 NM_203204 NM_209669 XM_235217 XM_384252 XM_484008 XM_536409
+ NG_000006b NG_007385b NG_008929b NG_008953b
+].map{|x| "#{OUTPUT}/blastx/#{x}.out"}
+
+
+NUCDB_SHD = NUCDB+'.shd'
+file NUCDB_SHD => NUCDB_FILES do
+  sh "#{MAKEMBINDEX} -input #{NUCDB}"
+end
+
+# blastn
+rule /^#{OUTPUT}\/blastn\/.*\.out$/ => ["%{^#{OUTPUT},queries}X"]+NUCDB_FILES do |t|
+  sh "#{BLASTN} -db #{NUCDB} #{QUERY_OPT} #{t.source} #{BLASTN_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+# megablast
+rule /^#{OUTPUT}\/megablast\/.*\.out$/ => ["%{^#{OUTPUT},queries}X"]+NUCDB_FILES do |t|
+  sh "#{MEGABLAST} -db #{NUCDB} #{QUERY_OPT} #{t.source} #{MEGABLAST_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+# idx_megablast
+rule /^#{OUTPUT}\/megablast\/IDX_.M.*\.out$/ => ["%{^#{OUTPUT},queries;IDX_,}X",NUCDB_SHD]+NUCDB_FILES do |t|
+  sh "#{IDX_MEGABLAST} -db #{NUCDB} #{QUERY_OPT} #{t.source} #{MEGABLAST_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+rule /^#{OUTPUT}\/megablast\/IDX_.G.*\.out$/ => ["%{^#{OUTPUT},queries}X",NUCDB_SHD]+NUCDB_FILES do |t|
+  sh "#{IDX_MEGABLAST} -db #{NUCDB} #{QUERY_OPT} #{t.source} #{MEGABLAST_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+# tblastn
+rule /^#{OUTPUT}\/tblastn\/.*\.out$/ => ["%{^#{OUTPUT},queries}X"]+NUCDB_FILES do |t|
+  sh "#{TBLASTN} -db #{NUCDB} #{QUERY_OPT} #{t.source} #{TBLASTN_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+# tblastx
+rule /^#{OUTPUT}\/tblastx\/.*\.out$/ => ["%{^#{OUTPUT},queries}X"]+NUCDB_FILES do |t|
+  sh "#{TBLASTX} -db #{NUCDB} #{QUERY_OPT} #{t.source} #{TBLASTX_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+# blastp
+rule /^#{OUTPUT}\/blastp\/.*\.out$/ => ["%{^#{OUTPUT},queries}X"]+PROTDB_FILES do |t|
+  sh "#{BLASTP} -db #{PROTDB} #{QUERY_OPT} #{t.source} #{BLASTP_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
+
+# blastx
+rule /^#{OUTPUT}\/blastx\/.*\.out$/ => ["%{^#{OUTPUT},queries}X"]+PROTDB_FILES do |t|
+  sh "#{BLASTX} -db #{PROTDB} #{QUERY_OPT} #{t.source} #{BLASTX_OPTS} 1>#{t.name} 2>#{t.name.sub(/out$/,'err')}"
+end
