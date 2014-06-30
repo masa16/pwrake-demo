@@ -292,7 +292,7 @@ end
 
 task "plot_position" do
   require 'wcs'
-  require 'pwrake/mcgp2'
+  require 'pwrake/mcgp'
   Pwrake::MCGP.graph_partition('shrunk.jpg')
   PlotPosition.new.plot
 end
