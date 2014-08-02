@@ -78,4 +78,4 @@ Tool for plotting positions of input FITS using Gnuplot.
         ruby plot_pos.rb images.tbl pos.[eps|png]
 
 * Result
-![output of plot_pos](https://raw.github.com/masa16/pwrake-demo/montage/pos.png)
+![output of plot_pos](https://raw.githubusercontent.com/masa16/pwrake-demo/master/montage/pos.png)
