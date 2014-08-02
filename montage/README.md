@@ -67,7 +67,7 @@
 ### plot_pos.rb
 
 * What is?
-Tool for plotting positions of input FITS using Gnuplot.
+  * Tool for plotting positions of input FITS using Gnuplot.
 
 * Requirement
   * Gnuplot
@@ -78,4 +78,5 @@ Tool for plotting positions of input FITS using Gnuplot.
         ruby plot_pos.rb images.tbl pos.[eps|png]
 
 * Result
-![output of plot_pos](https://raw.githubusercontent.com/masa16/pwrake-demo/master/montage/pos.png)
+
+  ![output of plot_pos](https://raw.githubusercontent.com/masa16/pwrake-demo/master/montage/pos.png)
