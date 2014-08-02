@@ -61,3 +61,21 @@
 * hosts
 * params.rb
 * tile_param.rb
+
+
+## Tool
+### plot_pos.rb
+
+* What is?
+Tool for plotting positions of input FITS using Gnuplot.
+
+* Requirement
+  * Gnuplot
+  * [Ruby/WCS](https://github.com/masa16/ruby-wcs)
+
+* Usage
+
+        ruby plot_pos.rb images.tbl pos.[eps|png]
+
+* Result
+![output of plot_pos](https://raw.github.com/masa16/pwrake-demo/montage/pos.png)
