@@ -61,12 +61,14 @@ end
 desc "mBgModel"
 file "corrections.tbl" => ["fits.tbl", IMAGES_TBL] do
   sh "mBgModel -a #{IMAGES_TBL} fits.tbl corrections.tbl"
-  CORRECTION = Montage.load_corrections("corrections.tbl",IMGTBL)
 end
 
 ### background correction
 desc "mBackground"
 rule %r|^c/.*\.fits$| => ["p/%f","corrections.tbl",'c'] do |t|
+  if !defined? CORRECTION
+    CORRECTION = Montage.load_corrections("corrections.tbl",IMGTBL)
+  end
   src = File.basename(t.prerequisites[0])
   params = CORRECTION[src]
   sh "mBackground p/#{src} #{t.name} #{params}" do end
